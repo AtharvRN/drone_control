@@ -71,7 +71,7 @@ python ControlWithKeyboard.py
 
   ```shell
   cd ..
-  cd Task2/
+  cd Task3/
   ```
   ```
   python test.py
