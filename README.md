@@ -65,5 +65,5 @@ python ControlWithKeyboard.py
   cd Task2/
   ```
   ```
-  python hover2.py
+  python drone_hover.py
   ```
