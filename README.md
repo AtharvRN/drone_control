@@ -49,7 +49,7 @@ cd Task1/
 python ControlWithKeyboard.py
 ```
 
-4. After this, in order to run Task 2, execute the following code:
+4. After executing the code for Task 1, in order to run Task 2, execute the following code:
 
   ```shell
   cd ..
