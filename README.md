@@ -56,7 +56,7 @@ python ControlWithKeyboard.py
   cd Task2/
   ```
   ```
-  python hover2.py
+  python drone_hover.py
   ```
   
 4. (OR) In order to run Task 2, execute the following code after navigating to the drone_control directory:
@@ -67,3 +67,22 @@ python ControlWithKeyboard.py
   ```
   python drone_hover.py
   ```
+5. After executing the code for Task 1 or Task 2, in order to run Task 3, execute the following code:
+
+  ```shell
+  cd ..
+  cd Task2/
+  ```
+  ```
+  python test.py
+  ```
+  
+5. (OR) In order to run Task 3, execute the following code after navigating to the drone_control directory:
+
+  ```shell
+  cd Task3/
+  ```
+  ```
+  python test.py
+  ```
+##### We couldn't complete the task 3 completely so the code doesn't work as per the exact task given, it just shows how can we connect two drones and fly them
