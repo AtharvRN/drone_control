@@ -101,7 +101,7 @@ dc = DepthCamera(width=WIDTH, height=HEIGHT)
 
 # Connecting to the drone
 print("[INFO] Connecting to the drone")
-command = Command("192.168.4.1")
+command = Pluto("192.168.4.1")
 
 print("[INFO] Taking Off")
 for i in range(10):
