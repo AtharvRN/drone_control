@@ -37,7 +37,7 @@ position2, drone2 should follow drone1 and reach position1 automatically.
   cd Task1/
   ```
   ```
-  python comm_ontrol.py
+  python comm_control.py
   ```
 
 3. (OR) In order to run Task 1 (using a keyboard) execute the following code:
