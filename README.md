@@ -8,11 +8,15 @@ pip install -r requirements.txt
 In order to run Task 1 (using an Xbox controller), execute the following code:
 
 ```shell
+cd Task1/
+
 python comm_ontrol.py
 ```
 
 In order to run Task 1 (using a keyboard) execute the following code:
 
 ```shell
+cd Task1/
+
 python ControlWithKeyboard.py
 ```
