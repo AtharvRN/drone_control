@@ -48,3 +48,22 @@ cd Task1/
 ```
 python ControlWithKeyboard.py
 ```
+
+4. After this, in order to run Task 2, execute the following code:
+
+  ```shell
+  cd ..
+  cd Task2/
+  ```
+  ```
+  python hover2.py
+  ```
+  
+4. (OR) In order to run Task 2, execute the following code after navigating to the drone_control directory:
+
+  ```shell
+  cd Task2/
+  ```
+  ```
+  python hover2.py
+  ```
