@@ -40,7 +40,7 @@ def msp_set_command(command):
 ACC_CALIB = make_in(0xcd, b"")
 MAG_CALIB = make_in(0xce, b"")
 
-class Command:
+class Pluto:
     def __init__(self, ip_addr):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((ip_addr, 23))
