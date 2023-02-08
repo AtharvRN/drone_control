@@ -1,9 +1,10 @@
+# import the necessary packages
 import time
 import cv2
 import cv2.aruco as aruco
 import numpy as np
 from realsense_depth import *
-# import the necessary packages
+
 from threading import Thread
 from utlities import *
 from control_class import *
@@ -39,6 +40,7 @@ def Adjust_PID(error,derr,P,D): # this function adjust the values of P and D of 
     return P,D
 # defining an empty custom dictionary 
 arucoDict = cv2.aruco.custom_dictionary(0, 4, 1)
+
 # adding empty bytesList array to fill with 5 markers 
 arucoDict.bytesList = np.empty(shape = (5, 2, 4), dtype = np.uint8)
 
@@ -56,6 +58,7 @@ arucoDict.bytesList[4] = cv2.aruco.Dictionary_getByteListFromBits(mybits)
 
 arucoParams = aruco.DetectorParameters_create()
 
+#_files in which calibration and distortion coefficients will be stored respectively
 calibration_matrix_path = "calibration_matrix.npy"
 distortion_coefficients_path = "distortion_coefficients.npy"
     
@@ -72,8 +75,10 @@ time.sleep(2.0)
 reached = False
 first_time = True
 
+#number of frames the drone has gone out of the camera frame  
 num_not_detected = 0
 eps = 0.1
+#the depth at which we want the drone to hover, measured from the camera
 desired_depth = 2.2
 # PID PARAMETERS
 command = Command("192.168.4.1")
