@@ -133,9 +133,10 @@ class Pluto:
 
         self.boxarm()
         self.cmd = 1
+
         self.send()
 
-        # time.sleep(5)
+        #time.sleep(0.2)
         self.boxarm()
 
     def land(self):

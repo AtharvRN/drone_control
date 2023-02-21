@@ -6,6 +6,7 @@ import numpy as np
 from realsense_depth import *
 from utlities import *
 from control_class import *
+import sys
 
 ## IMAGE RESOLUTION
 WIDTH = 1920
@@ -16,7 +17,6 @@ HEIGHT = 1080
 # out = cv2.VideoWriter('out.mp4',fourcc,20,(WIDTH,HEIGHT))
 
 
-#Estimating Drone Position using cv2.aruco.estimatePoseSingleMarkers
 
 #Estimating Drone Position using cv2.aruco.estimatePoseSingleMarkers
 def drone_pose(matrix_coefficients, distortion_coefficients,corners):
@@ -79,8 +79,10 @@ def drone_navigation(desired_pos):
     error_sum = 0
     prev_time = time.time()
     f_old = prev_time
+    num_not_detected = 0
     try:
         while True:
+            print('re')
             ## Reading Colour frame from depth Camera
             ret, color_frame = dc.get_frame()
             gray = cv2.cvtColor(color_frame,cv2.COLOR_BGR2GRAY)
@@ -90,7 +92,7 @@ def drone_navigation(desired_pos):
 
             if len(corners) > 0 and 0 in ids : 
 
-                    i# finding correspinding index
+                    # finding correspinding index
                     ids = ids.tolist()
                     i = ids.index([0])
 
@@ -126,7 +128,7 @@ def drone_navigation(desired_pos):
                     print('[INFO] : Landing ...')
                     command.land()
                     print('[INFO] : Quitting ...')
-                    break;
+                    break
 
                 num_not_detected +=1
                 # In case the drone is not detected, hover at same postion and skip rest of the loop and re read the frame
@@ -179,7 +181,7 @@ def drone_navigation(desired_pos):
 
             
             ##  Chaning PID based on error
-            PID_tune(error)
+            #PID_tune(error)
             
             # Compting P I D
             P = kp*error
@@ -195,10 +197,10 @@ def drone_navigation(desired_pos):
             #print(result)
             
             ## Computing  x and y correction based on result and angle of the drone
-            temp0 = result[0]
-            temp1 = result[1]
-            result[0] =  (int)(np.cos(angle)*temp0 + np.sin(angle)*temp1)
-            result[1] =  (int)(np.cos(angle)*temp1 - np.sin(angle)*temp0)
+            # temp0 = result[0]
+            # temp1 = result[1]
+            # result[0] =  (int)(np.cos(angle)*temp0 + np.sin(angle)*temp1)
+            # result[1] =  (int)(np.cos(angle)*temp1 - np.sin(angle)*temp0)
 
             # Updating result accordingly
             result = mean_vals - (np.rint(result)).astype(int)
@@ -238,8 +240,8 @@ def drone_navigation(desired_pos):
     except KeyboardInterrupt:
         print('[INFO] : KeyboardInterrupt')
         return False
-    except Exception:
-        return False
+    # except Exception:
+    #     return False
 
 
 # defining an empty custom dictionary 
@@ -282,11 +284,14 @@ prev_err = np.zeros(4)
 
 ## PITCH,ROLL,THROTTLE,YAW
 ### PID PARAMETERS
-kp_max = np.array([8,8,25,0])
-ki_max = np.array([2,2,2,0])
-kd_max = np.array([0,0,0,0])
+# kp_max = np.array([8,8,25,0])
+# ki_max = np.array([2,2,2,0])
+# kd_max = np.array([0,0,0,0])
+kp_max = np.array([10,10,40,0])
+ki_max = np.array([2,2,1,0])
+kd_max = np.array([5,5,20,0])
 
-kp = np.copy(ki_max)
+kp = np.copy(kp_max)
 ki = np.copy(ki_max)
 kd = np.copy(kd_max)
 
@@ -308,11 +313,15 @@ print("[INFO] : Connecting to the drone")
 command = Pluto("192.168.4.1")
 
 ### SETPOINTS BASED NAVIGATION
-waypoints = np.array([[1,-0.7,desired_depth,0],
-                      [-1,-0.7,desired_depth,0],
-                      [-1,0.3,desired_depth,0],
-                      [1,-0.3,desired_depth,0]])
+# waypoints = np.array([[1,-0.7,desired_depth,0],
+#                       [-1,-0.7,desired_depth,0],
+#                       [-1,0.3,desired_depth,0],
+#                       [1,-0.3,desired_depth,0]])
 
+waypoints = np.array([[-0.5,-0.5,desired_depth,0],
+                      [-0.5,0.5,desired_depth,0],
+                      [0.5,0.5,desired_depth,0],
+                      [0.5,-0.5,desired_depth,0]])
 
 print("[INFO] : Taking Off")
 for i in range(10):
@@ -342,10 +351,11 @@ kp,ki,kd = kp_max,ki_max,kd_max
 mean_vals = [1500,1465,1500,1500]
 kp[1],ki[1],kd[1] = 0.05,0,0
 
-if ( not drone_navigation(waypoints[2])):
+if (not drone_navigation(waypoints[2])):
     dc.release()
     cv2.destroyAllWindows()
     command.land()
+    sys.exit(0)
 
 
 kp,ki,kd = kp_max,ki_max,kd_max
@@ -373,4 +383,4 @@ if ( not drone_navigation(waypoints[0])):
 
 dc.release()
 cv2.destroyAllWindows()
-command.lans()
+command.land()

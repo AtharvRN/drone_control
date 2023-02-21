@@ -78,6 +78,8 @@ class DepthCamera:
     def get_depth(self,x,y):
         
         depth = self.depth_frame.get_distance(x,y)
+        #depth_image = np.asanyarray(self.depth_frame.get_data())
+        #depth = depth_image[y,x]
         return depth
     ## Stop Reading
     def release(self):

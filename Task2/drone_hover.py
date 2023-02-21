@@ -20,7 +20,7 @@ def drone_pose(matrix_coefficients, distortion_coefficients,corners):
     ## MARKER SIZE OF DRONE
 
     ## Size of Marker on Drone
-    MARKER_SIZE = 0.056
+    MARKER_SIZE = 0.04
     rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners, MARKER_SIZE, matrix_coefficients,distortion_coefficients)
     return tvec,rvec
 
@@ -78,7 +78,6 @@ mybits = np.array([[0,1,0,0],[1,1,0,0],[1,0,1,0],[1,1,0,1]], dtype = np.uint8)
 arucoDict.bytesList[0] = cv2.aruco.Dictionary_getByteListFromBits(mybits)
 mybits = np.array([[1,1,1,1],[1,0,0,1],[1,0,0,1],[0,0,0,1],], dtype = np.uint8)
 arucoDict.bytesList[1] = cv2.aruco.Dictionary_getByteListFromBits(mybits)
-mybits = np.array([[0,0,0,1],[0,0,0,1],[1,0,1,0],[0,1,1,1]], dtype = np.uint8)
 
 # Aruco Parameters
 arucoParams = aruco.DetectorParameters_create()
@@ -98,8 +97,7 @@ if WIDTH == 1920 and HEIGHT == 1080:
 first_time = True
 num_not_detected = 0
 tolerance = 0.1
-desired_depth = 2
-
+desired_depth = 1.6
 # Initialisation
 error = np.zeros(4)
 derr = np.zeros(4)
@@ -107,17 +105,21 @@ error_sum = np.zeros(4)
 prev_err = np.zeros(4)
 
 ## PITCH,ROLL,THROTTLE,YAW
-### PID PARAMETERS
-kp_max = np.array([8,8,25,0])
-ki_max = np.array([2,2,2,0])
-kd_max = np.array([0,0,0,0])
+### CALIBRATED PARAMS
+# kp_max = np.array([10,10,40,0])
+# ki_max = np.array([2,2,1,0])
+# kd_max = np.array([5,5,20,0])
 
-kp = np.copy(ki_max)
+kp_max = np.array([9,9,40,0])
+ki_max = np.array([2,2,2,0])
+kd_max = np.array([5,5,20,0])
+
+kp = np.copy(kp_max)
 ki = np.copy(ki_max)
 kd = np.copy(kd_max)
 
 ## Mean Value - May have to change according to Battery Level
-mean_vals = np.array([1500,1500,1470,1500])
+mean_vals = np.array([1490,1515,1470,1500])
 
 mean_roll =  mean_vals[0]
 mean_pitch = mean_vals[1]
@@ -140,15 +142,23 @@ for i in range(10):
 command.takeoff()
 time.sleep(0.2)
 
+for i in range(10):
+    command.boxarm()
+    time.sleep(0.1)
+print('[INFO] : Takeoff Completed')
+
+## Image Loop
+
 #3 prev_time - time paramter for PID 
 prev_time = time.time()
 ## f_old - for measuring FPS
 f_old = prev_time
-print('[INFO] : Takeoff Completed')
 
-## Image Loop
 try:
-    while True:
+    frame_no = 0
+    print('ds')
+    while True :
+        print('ds')
         ## Reading Colour frame from depth Camera
         ret, color_frame = dc.get_frame()
         gray = cv2.cvtColor(color_frame,cv2.COLOR_BGR2GRAY)
@@ -176,9 +186,10 @@ try:
                 y = tvec[0][0][1]
                 z = tvec[0][0][2]
 
+                
                 # Calculation of anglw of the drone using corner points
-                point1 = (corners[i][0][1] + corners[i][0][2])//2
-                point2 = (corners[i][0][0] + corners[i][0][3])//2
+                point1 = (corners[i][0][0] + corners[i][0][1])/2
+                point2 = (corners[i][0][2] + corners[i][0][3])//2
 
                 if point1[0] == point2[0]:
                     angle = np.pi/2
@@ -188,7 +199,7 @@ try:
                 num_not_detected = 0
 
         else :
-            ## Drone not detected
+            ## Drone not detectedf
             print('[INFO] : Drone not detected ...')
             ## If drone is not detected for more than 20 frames => drone out of camera's field of view. Hence Exiting
             if num_not_detected > 20:
@@ -196,7 +207,7 @@ try:
                 print('[INFO] : Landing ...')
                 command.land()
                 print('[INFO] : Quitting ...')
-                break;
+                break
 
             num_not_detected +=1
             # In case the drone is not detected, hover at same postion and skip rest of the loop and re read the frame
@@ -213,6 +224,7 @@ try:
             fps = 1/(f_new-f_old)
             f_old = f_new
             print('[INFO] : fps = ',fps)
+            frame_no+=1
             continue
         
         ## HOVERING 
@@ -231,7 +243,7 @@ try:
             curr_pos = np.array([x,y,depth,angle])
 
             ## Printing position at the top right
-            position = 'x :'+str(round(x*100))+'  y:'+str(round(y*100))+'  z :'+str(round(z*100)) +'  angle :'+str(round(angle*180/np.pi))
+            position = 'x :'+str(round(x*100))+'  y:'+str(round(y*100))+'  z :'+str(round(depth*100)) +'  angle :'+str(round(angle*180/np.pi))
             cv2.putText(color_frame, str(position),(100,100),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),2)
 
             # Checking if desired position is reached
@@ -240,45 +252,50 @@ try:
                 
             print('desired pos : ',desired_pos)
             print('curr_pos :', curr_pos )
-
-            curr_time = time.time()
-            time_ = curr_time-prev_time
-            # Computing the Error and Derr
-            error = desired_pos  -curr_pos
-            derr = (error -prev_err)/(time_)
             
+            if frame_no %1 == 0:
+                curr_time = time.time()
+                time_ = curr_time-prev_time
+                # Computing the Error and Derr
+                error = desired_pos  -curr_pos
+                derr = (error -prev_err)/(time_)
+                
+                print(error)
+                ##  Chaning PID based on error
+                #PID_tune(error)
+                
+                # Compting P I D
 
-            ##  Chaning PID based on error
-            PID_tune(error)
-            
-            # Compting P I D
-            P = kp*error
-            I = ki*error_sum
-            D =  kd*derr
+                P = kp*error
+                I = ki*error_sum
+                D =  kd*derr
 
-            ## Uncomment to PID Values
-            #print(P,I,D)
+                ## Uncomment to PID Values
+                print('PID')
+                print(P,I,D)
 
-            result = P+I+D
+                result = P+I+D
 
-            # Uncomment to result effective correction3
-            #print(result)
-            
-            ## Computing  x and y correction based on result and angle of the drone
-            temp0 = result[0]
-            temp1 = result[1]
-            result[0] =  (int)(np.cos(angle)*temp0 + np.sin(angle)*temp1)
-            result[1] =  (int)(np.cos(angle)*temp1 - np.sin(angle)*temp0)
+                # Uncomment to result effective correction3
+                #print(result)
+                
+                ## Computing  x and y correction based on result and angle of the drone
+                # temp0 = result[0]
+                # temp1 = result[1]
+                # result[0] =  (int)(np.cos(angle)*temp0 + np.sin(angle)*temp1)
+                # result[1] =  (int)(np.cos(angle)*temp1 - np.sin(angle)*temp0)
 
             # Updating result accordingly
-            result = mean_vals - (np.rint(result)).astype(int)
+                result = mean_vals - (np.rint(result)).astype(int)
+            
+            frame_no+=1
             
 
             ## Uncomment to view RPTY
-            # print("pitch : ",result[0])
-            # print("roll : ",result[1])
-            # print("throttle : ",result[2])
-            # print("yaw : ",result[3])
+            print("pitch : ",result[0])
+            print("roll : ",result[1])
+            print("throttle : ",result[2])
+            print("yaw : ",result[3])
             
             # Sending Command to Drone
             command.set_attitude(throttle = result[2], yaw = result[3],pitch = result[0],roll = result[1])
@@ -290,6 +307,7 @@ try:
             ## Resizing the image for viewing
             scaled = cv2.resize(color_frame, (1280, 720), interpolation = cv2.INTER_CUBIC)
             cv2.imshow("Frame", scaled)
+            
 
             # Uncomment to record video
             #out.write(color_frame)
@@ -309,13 +327,17 @@ try:
 
 
 except KeyboardInterrupt:
-    print('[INFO] : Keyboard Interrupt')
-    command.boxarm()
-    command.land()
-except:
-    print('[INFO] : Exception')
-    command.boxarm()
-    command.land()
+    try:
+        print('[INFO] : Keyboard Interrupt')
+        command.boxarm()
+        command.land()
+    except KeyboardInterrupt:
+        command.disarm()
+
+# except:
+#     print('[INFO] : Exception')
+#     command.boxarm()
+#     command.land()
 
 command.land()
 dc.release()
