@@ -86,3 +86,11 @@ python ControlWithKeyboard.py
   python test.py
   ```
 ##### We couldn't complete the task 3 completely so the code doesn't work as per the exact task given, it just shows how can we connect two drones and fly them
+
+Contributers
+Atharv Ramesh 
+Samar Singhai
+Aadil Salim
+Kartheek Tammana
+Rudransh Mishra
+Dheeraj M
